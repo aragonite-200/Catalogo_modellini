@@ -2,6 +2,8 @@ import * as Device from 'expo-device';
 import { Platform, StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
 
 
+
+
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';

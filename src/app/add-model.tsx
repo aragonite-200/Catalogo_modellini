@@ -1,180 +1,282 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Device from 'expo-device';
+import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, TextInput, Image} from 'react-native';
+import {useState, useEffect} from 'react';
+import { Lucide } from '@react-native-vector-icons/lucide';
+import * as ImagePicker from 'expo-image-picker';
 
-import { ExternalLink } from '@/components/external-link';
+import { AnimatedIcon } from '@/components/animated-icon';
+import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
 import { WebBadge } from '@/components/web-badge';
+import {ThemedBox} from '@/components/ThemedBox';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { PieChartBox } from "@/components/PieChartBox";
+import { BarChartBox } from "@/components/CartesianChart";
+import { LatestModels } from '@/components/LatestModels';
+import { ThemedSafeAreaView } from '@/components/ThemedSafeAreaView';
+import { linkTo } from 'expo-router/build/global-state/router';
+import { ThemedTextInput } from '@/components/ThemedTextInput';
+import { ModelList } from '@/components/Model-list';
+import { ThemedLucideIcon } from '@/components/ThemedLucidIcon';
 import { useTheme } from '@/hooks/use-theme';
+import { ThemedPicker } from '@/components/Themed-picekr';
+import { Color } from 'expo-router';
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
+type Model = {
+  id: string;
+  name: string;
+  image: string;
+  marca: string;
+  scala: string;
+  createdAt: string;
+};
+
+
+
+export default function addModel() {
+  
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
+  const [scale, setScale] = useState<string | null>(null);
+
+  const [marca, onChangeMarca] = useState("");
+  const [modello, onChangeModello] = useState("");
+  const [produttore, onChangeProduttore] = useState("");
+  const [versione, onChangeVersione] = useState("");
+  const [prezzo, onChangePrezzo] = useState("");
+  const [AlertMarca, setAlertMarca] = useState("");
+  const [AlertModello, setAlertModello] = useState("");
+  const [AlertProduttore, setAlertProduttore] = useState("");
+  const [AlertVersione, setAlertVersione] = useState("");
+  const [AlertPrezzo, setAlertPrezzo] = useState("");
+  const [AlertScale, setAlertScale] = useState("");
+
+
   const theme = useTheme();
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+   const pickImageAsync = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    } else {
+      alert('Non hai selezionato nessuna immagine.');
+    }
+  };
+
+  const save = async () => {
+    if (!marca) {
+      setAlertMarca("Inserisci la marca del modellino");
+    }
+    if (!modello) {
+      setAlertModello("Inserisci il modello del modellino");
+    }
+    if (!produttore) {
+      setAlertProduttore("Inserisci il produttore del modellino");
+    }
+    if (!versione) {
+      setAlertVersione("Inserisci la versione del modellino");
+    }
+    if (!prezzo) {
+      setAlertPrezzo("Inserisci il prezzo del modellino");
+    }
+    if (!scale) {
+      setAlertScale("Inserisci la scala del modellino");
+    }
+
+    if (!marca || !modello || !produttore || !versione || !prezzo || !scale) {
+      return;
+    }
+
+    if (prezzo && isNaN(Number(prezzo))) {
+      setAlertPrezzo("Il prezzo deve essere un numero valido");
+      return;
+    }
+
+
+    console.log("Salvataggio modellino:", { marca, modello, produttore, versione, prezzo, scale, selectedImage });
+  }
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+    <ThemedSafeAreaView>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ThemedView style={styles.container}>
+          <ThemedView style={{ gap: 2 }}>
+            <ThemedText style={styles.title}>Aggiungi Modellino</ThemedText>
+          </ThemedView>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
+          <TouchableOpacity onPress={pickImageAsync}>
+            <ThemedBox style={{ width: "100%", height: 200, borderStyle: "dashed", borderWidth: 1, borderColor: theme.border, justifyContent: "center", alignItems: "center" }}>
+              
+              
+              {selectedImage ? (
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={{ width: "100%", height: "100%" }}
                 />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
+              ) : (
+                <>
+                <View style={{ alignItems: "center" }}>
+                
+                    <ThemedLucideIcon style={{ opacity: 0.5,  }} name="camera" size={50} />
+                    <ThemedText>Aggiungi foto</ThemedText>
+                    <ThemedText style={styles.subtitle}>Tocca per scattare o caricare</ThemedText>
+                  </View>
+                </>
+              )}
+            </ThemedBox>
+          </TouchableOpacity>
+          
+          <View>
+            <ThemedText style={styles.label}>Marca Veicolo</ThemedText>
+            <ThemedTextInput
+              placeholder="Marca"
+              style={{ width: "100%" }}
+              value={marca}
+              onChangeText={onChangeMarca}
+            />
+            {AlertMarca && (
+              <ThemedText style={styles.alert}>{AlertMarca}</ThemedText>
+            )}
+          </View>
+
+          <View>
+            <ThemedText style={styles.label}>Modello Veicolo</ThemedText>
+            <ThemedTextInput
+              placeholder="Modello"
+              style={{ width: "100%" }}
+              value={modello}
+              onChangeText={onChangeModello}
+            />
+            {AlertModello && (
+              <ThemedText style={styles.alert}>{AlertModello}</ThemedText>
+            )}
+          </View>
+
+          <View>
+            <ThemedText style={styles.label}>Produttore Modellino</ThemedText>
+            <ThemedTextInput
+              placeholder="Produttore"
+              style={{ width: "100%" }}
+              value={produttore}
+              onChangeText={onChangeProduttore}
+            />
+            {AlertProduttore && (
+              <ThemedText style={styles.alert}>{AlertProduttore}</ThemedText>
+            )}
+          </View>
+
+          <View>
+            <ThemedText style={styles.label}>Versione (opzionale)</ThemedText>
+            <ThemedTextInput
+              placeholder="Versione"
+              style={{ width: "100%" }}
+              value={versione}
+              onChangeText={onChangeVersione}
+            />
+            {AlertVersione && (
+              <ThemedText style={styles.alert}>{AlertVersione}</ThemedText>
+            )}
+          </View>
+
+          <View>
+            <ThemedText style={styles.label}>Prezzo (opzionale)</ThemedText>
+            <ThemedTextInput
+              placeholder="Prezzo"
+              style={{ width: "100%" }}
+              value={prezzo}
+              onChangeText={onChangePrezzo}
+              keyboardType="numeric"
+            />
+            {AlertPrezzo && (
+              <ThemedText style={styles.alert}>{AlertPrezzo}</ThemedText>
+            )}
+          </View>
+
+          <View>
+            <ThemedText style={styles.label}>Scala Modellino</ThemedText>
+            <ThemedPicker
+              value={scale}
+              onChange={setScale}
+              items={[
+                { label: "1:18", value: "118" },
+                { label: "1:24", value: "124" },
+                { label: "1:43", value: "143" },
+                { label: "1:64", value: "164" },
+                { label: "Altro", value: "altro" },
+              ]}
+            />
+            {AlertScale && (
+              <ThemedText style={styles.alert}>{AlertScale}</ThemedText>
+            )}
+          </View>
+
+          <TouchableOpacity onPress={save}>
+            <View style={{ width: "100%", height: 50, justifyContent: "center", alignItems: "center", backgroundColor: theme.primary, borderRadius: 8 }}>
+              <ThemedText style={[{ color: "white", fontWeight: "bold", fontSize: 15 }]}>Aggiungi Modellino</ThemedText>
+            </View>
+          </TouchableOpacity>
+
         </ThemedView>
-
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+      </ScrollView>
+    </ThemedSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
+
   container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.three,
+    paddingBottom: BottomTabInset + Spacing.three,
+    gap: Spacing.three,
+    maxWidth: MaxContentWidth,
+    alignSelf: "center",
+    width: "100%",
   },
-  collapsibleContent: {
-    alignItems: 'center',
+
+  title: {
+    textAlign: "left",
+    fontSize: 24,
+    fontWeight: "bold",
   },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+
+  subtitle: {
+    textAlign: "left",
+    fontSize: 13,
+    opacity: 0.7,
+    marginTop: 0,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+
+  label: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+
+  value: {
+    fontSize: 25,
+    fontWeight: "bold",
+    
+  },
+
+  chart: {
+    flex: 1, 
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  legend: {
+    flex: 1, 
+    gap: 6,
+  },
+
+  alert: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 4,
   },
 });
