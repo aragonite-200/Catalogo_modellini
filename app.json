@@ -1,22 +1,20 @@
 {
   "expo": {
-    "name": "catalogo-btbes4u1kaelfuimye8fa",
+    "name": "catalogo",
     "slug": "catalogo-btbes4u1kaelfuimye8fa",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app_logo.png",
     "scheme": "catalogobtbes4u1kaelfuimye8fa",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/app_logo.png",
+      "bundleIdentifier": "com.aragonite200.catalogobtbes4u1kaelfuimye8fa",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      },
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -25,6 +23,7 @@
     },
     "plugins": [
       "expo-router",
+      "@react-native-vector-icons/fontawesome",
       [
         "expo-splash-screen",
         {
@@ -34,11 +33,19 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ced99b17-5e01-4fe2-8c6f-aa60e6732a20"
+      }
+    },
+    "owner": "aragonite200"
   }
 }
