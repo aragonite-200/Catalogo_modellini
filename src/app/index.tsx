@@ -1,6 +1,8 @@
 import * as Device from 'expo-device';
-import { Platform, StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
-
+import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, RefreshControl} from 'react-native';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -19,9 +21,58 @@ import { linkTo } from 'expo-router/build/global-state/router';
 
 
 export default function HomeScreen() {
+
+  interface StatScala {
+    scala: number;
+    totalePerScala: number;
+  }
+
+  interface StatMarca {
+    marca: string;
+    totalePerMarca: number;
+  }
+
+  const db = useSQLiteContext();
+  const [totaleModellini, setTotaleModellini] = useState<number>(0);
+  const [valore, setValore] = useState<number>(0);
+  const [statsScale, setStatsScale] = useState<StatScala[]>([]);
+  const [statsMarche, setStatsMarche] = useState<StatMarca[]>([]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    setRefreshing(true)
+    load().finally(() => setRefreshing(false));;
+  };
+
+    async function load() {
+      const totModellini = await db.getFirstAsync<{ totale: number }>('SELECT COUNT(id) as totale FROM modellini');
+      if (totModellini) {
+        setTotaleModellini(totModellini.totale);
+        await AsyncStorage.setItem('totModellini', String(totaleModellini));
+      }
+
+      const  totValore = await db.getFirstAsync<{ totalePrezzo: number}>(`SELECT SUM(prezzo) as totalePrezzo FROM modellini`);
+      if(totValore && totValore.totalePrezzo > 0) {
+        setValore(totValore.totalePrezzo);
+      } else {
+        setValore(0);
+      }
+
+      const scaleResult = await db.getAllAsync<StatScala>('SELECT scala, COUNT(id) as totalePerScala FROM modellini GROUP BY scala ORDER BY totalePerScala DESC');
+      setStatsScale(scaleResult);
+
+      const marcheResult = await db.getAllAsync<StatMarca>('SELECT marca, COUNT(id) as totalePerMarca FROM modellini GROUP BY marca ORDER BY totalePerMarca DESC');
+      setStatsMarche(marcheResult);
+    }
+
+  useEffect(() => {
+    load()
+  }, [])
+
   return (
     <ThemedSafeAreaView >
-      <ScrollView style={{ flex: 1}} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1}} showsVerticalScrollIndicator={false}  refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
         <ThemedView style={styles.container}>
           <ThemedView style={{ gap: 2 }}>
             <ThemedText style={styles.title}>Bentornato</ThemedText>
@@ -40,12 +91,12 @@ export default function HomeScreen() {
           >
             <ThemedBox style={{ flex: 1, minWidth: 150 }}>
                   <ThemedText style={styles.label}>Totale Modellini</ThemedText>
-                  <ThemedText style={styles.value}>67</ThemedText>
+                  <ThemedText style={styles.value}>{totaleModellini}</ThemedText>
             </ThemedBox>
 
             <ThemedBox style={{ flex: 1, minWidth: 150 }}>
                   <ThemedText style={styles.label}>Valore Stimato</ThemedText>
-                  <ThemedText style={styles.value}>67</ThemedText>
+                  <ThemedText style={styles.value}>{valore}</ThemedText>
             </ThemedBox>
           </ThemedView>
 
@@ -55,11 +106,11 @@ export default function HomeScreen() {
     
                 {/* GRAFICO */}
                 <PieChartBox
-                  data={[
-                    { label: "Ferrari", value: 20 },
-                    { label: "Mercedes", value: 15 },
-                    { label: "Red Bull", value: 32 },
-                  ]}
+                  data={
+                    statsScale.map((item) => ({
+                      label: String(item.scala),
+                      value: item.totalePerScala,
+                    }))}
                 />
               </View>
             </ThemedBox>
@@ -67,13 +118,12 @@ export default function HomeScreen() {
             <ThemedBox>
               <ThemedText style={styles.label}>Distribuzione per marca</ThemedText>
               <BarChartBox
-                data={[
-                  { label: "Ferrari", value: 20 },
-                  { label: "Mercedes", value: 15 },
-                  { label: "Red Bull", value: 32 },
-                  { label: "Alfa Romeo", value: 10},
-                  { label: "Seat", value: 20},
-                ]}
+                data={
+                  statsMarche.map((item) => ({
+                    label: String(item.marca),
+                    value: item.totalePerMarca,
+                  }))
+                }
                 maxItems={5}
               />
             </ThemedBox>

@@ -1,8 +1,10 @@
 import * as Device from 'expo-device';
-import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, TextInput, Image} from 'react-native';
+import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, TextInput, Image, Alert} from 'react-native';
 import {useState, useEffect} from 'react';
 import { Lucide } from '@react-native-vector-icons/lucide';
 import * as ImagePicker from 'expo-image-picker';
+import { useSQLiteContext } from 'expo-sqlite';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
@@ -36,8 +38,10 @@ type Model = {
 
 export default function addModel() {
   
+  const db = useSQLiteContext();
+  const [image_path, set_image_path] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
-  const [scale, setScale] = useState<string | null>(null);
+  const [scala, setscala] = useState<string | null>(null);
 
   const [marca, onChangeMarca] = useState("");
   const [modello, onChangeModello] = useState("");
@@ -49,24 +53,62 @@ export default function addModel() {
   const [AlertProduttore, setAlertProduttore] = useState("");
   const [AlertVersione, setAlertVersione] = useState("");
   const [AlertPrezzo, setAlertPrezzo] = useState("");
-  const [AlertScale, setAlertScale] = useState("");
+  const [Alertscala, setAlertscala] = useState("");
 
 
   const theme = useTheme();
+
+  async function saveImageAndGetPath(temporaryUri: string): Promise<string> {
+    const filename = `${Date.now()}_${temporaryUri.split('/').pop()}`;
+    const newPath = `${FileSystem.documentDirectory}images/${filename}`;
+
+    
+
+    await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}images/`, {
+      intermediates: true,
+    });
+
+
+    await FileSystem.copyAsync({
+      from: temporaryUri,
+      to: newPath,
+    });
+
+    return newPath;
+  }
 
    const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      quality: 1,
+      quality: 0.7,
     });
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      set_image_path(await saveImageAndGetPath(result.assets[0].uri));
+
     } else {
       alert('Non hai selezionato nessuna immagine.');
     }
   };
+
+  const reset = () => {
+    set_image_path("");
+    setSelectedImage(undefined);
+    setscala(null);
+    onChangeMarca("");
+    onChangeModello("");
+    onChangeProduttore("");
+    onChangeVersione("");
+    onChangePrezzo("");
+    setAlertMarca("");
+    setAlertModello("");
+    setAlertProduttore("");
+    setAlertVersione("");
+    setAlertPrezzo("");
+    setAlertscala("");
+  }
 
   const save = async () => {
     if (!marca) {
@@ -78,17 +120,11 @@ export default function addModel() {
     if (!produttore) {
       setAlertProduttore("Inserisci il produttore del modellino");
     }
-    if (!versione) {
-      setAlertVersione("Inserisci la versione del modellino");
-    }
-    if (!prezzo) {
-      setAlertPrezzo("Inserisci il prezzo del modellino");
-    }
-    if (!scale) {
-      setAlertScale("Inserisci la scala del modellino");
+    if (!scala) {
+      setAlertscala("Inserisci la scala del modellino");
     }
 
-    if (!marca || !modello || !produttore || !versione || !prezzo || !scale) {
+    if (!marca || !modello || !produttore || !scala) {
       return;
     }
 
@@ -98,7 +134,22 @@ export default function addModel() {
     }
 
 
-    console.log("Salvataggio modellino:", { marca, modello, produttore, versione, prezzo, scale, selectedImage });
+    console.log("Salvataggio modellino:", { marca, modello, produttore, versione, prezzo, scala, selectedImage });
+
+    const result = await db.runAsync(
+      'INSERT INTO modellini (marca, modello, produttore, versione, prezzo, scala, foto_path) VALUES (?, ?, ?, ?, ?, ?, ? )',
+      [marca, modello, produttore, versione, prezzo ? parseFloat(prezzo) : null, scala, image_path ]
+    )
+
+    if(result) {
+      Alert.alert("Salvato!", "Modellino aggiunto con successo!", [
+        {
+          text: "OK",
+          onPress: () => {linkTo("/all-model"); reset();},
+        }
+      ])
+    }
+
   }
 
   return (
@@ -200,18 +251,18 @@ export default function addModel() {
           <View>
             <ThemedText style={styles.label}>Scala Modellino</ThemedText>
             <ThemedPicker
-              value={scale}
-              onChange={setScale}
+              value={scala}
+              onChange={setscala}
               items={[
-                { label: "1:18", value: "118" },
-                { label: "1:24", value: "124" },
-                { label: "1:43", value: "143" },
-                { label: "1:64", value: "164" },
+                { label: "1:18", value: "1:18" },
+                { label: "1:24", value: "1:24" },
+                { label: "1:43", value: "1:43" },
+                { label: "1:64", value: "1:64" },
                 { label: "Altro", value: "altro" },
               ]}
             />
-            {AlertScale && (
-              <ThemedText style={styles.alert}>{AlertScale}</ThemedText>
+            {Alertscala && (
+              <ThemedText style={styles.alert}>{Alertscala}</ThemedText>
             )}
           </View>
 

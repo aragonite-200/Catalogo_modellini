@@ -2,38 +2,37 @@ import { useEffect, useState } from "react";
 import { View, Image, TouchableOpacity } from "react-native";
 import { ThemedText } from "./themed-text";
 import { linkTo } from 'expo-router/build/global-state/router';
+import { useSQLiteContext } from 'expo-sqlite';
 
 type Model = {
-  id: string;
-  name: string;
-  image: string;
-  createdAt: string;
+  id: number; 
+  marca: string;
+  modello: string;
+  produttore: string;
+  versione: string | null; 
+  prezzo: number | null;   
+  scala: string;
+  foto_path: string;
+  created_at: string; 
 };
-
 type Props = {
   limit?: number;
 };
 
 export function LatestModels({ limit = 5 }: Props) {
+  const db = useSQLiteContext();
   const [data, setData] = useState<Model[]>([]);
 
   useEffect(() => {
-    async function load() {
-      const res = await fetch("https://YOUR_API/models"); 
-      const json: Model[] = await res.json();
-
-      // ordina per data (più recenti prima)
-      const sorted = json.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime()
-      );
-
-      setData(sorted.slice(0, limit));
-    }
-
-    //load();
-  }, [limit]);
+  async function load() {
+    const rows = await db.getAllAsync<Model>(
+      'SELECT * FROM modellini ORDER BY created_at DESC LIMIT ?',
+      limit
+    );
+    setData(rows);
+  }
+  load();
+}, [limit]);
 
 //TODO modificare icona e testo quando non ci sono modelli
   if (data.length === 0 ) {

@@ -1,7 +1,8 @@
 import * as Device from 'expo-device';
-import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, TextInput, Image} from 'react-native';
+import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, TextInput, Image, RefreshControl} from 'react-native';
 import {useState, useEffect} from 'react';
 import { Lucide } from '@react-native-vector-icons/lucide';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
@@ -32,29 +33,29 @@ type Model = {
 export default function AllModels() {
   
   const [text, onChangeText] = useState("");
-  const [data, setData] = useState<Model[]>([]);
-  
-    useEffect(() => {
-      async function load() {
-        const res = await fetch("https://YOUR_API/models"); 
-        const json: Model[] = await res.json();
-  
-        // ordina per data (più recenti prima)
-        const sorted = json.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() -
-            new Date(a.createdAt).getTime()
-        );
-  
-        setData(sorted.slice(0));
-      }
-  
-      //load();
-    })
+
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [totaleModellini, setTotModellini] = useState("0")
+
+  const aggiornaTotale = async () => {
+    setTotModellini(await AsyncStorage.getItem('totModellini') ?? "0");
+  }
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setRefreshKey((prev) => prev + 1);
+    aggiornaTotale();
+    setTimeout(() => setRefreshing(false), 800);
+  };
+
+  useEffect(() => {
+    aggiornaTotale();
+  }, [])
 
   return (
     <ThemedSafeAreaView>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
         <ThemedView style={styles.container}>
           <ThemedView style={{ gap: 2 }}>
             <ThemedText style={styles.title}>La Collezione</ThemedText>
@@ -75,9 +76,9 @@ export default function AllModels() {
 
           </View>
 
-          <ThemedText style={styles.subtitle}>67 modellini</ThemedText>
+          <ThemedText style={styles.subtitle}>{totaleModellini} modellini</ThemedText>
 
-          <ModelList/>
+          <ModelList query={text} refreshTrigger={refreshKey}/>
 
 
         </ThemedView>

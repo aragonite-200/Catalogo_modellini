@@ -2,7 +2,7 @@
   "expo": {
     "name": "catalogo",
     "slug": "catalogo-btbes4u1kaelfuimye8fa",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/app_logo.png",
     "scheme": "catalogobtbes4u1kaelfuimye8fa",
@@ -34,7 +34,8 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
