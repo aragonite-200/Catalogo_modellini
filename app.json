@@ -2,7 +2,7 @@
   "expo": {
     "name": "catalogo",
     "slug": "catalogo-btbes4u1kaelfuimye8fa",
-    "version": "1.0.1",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/app_logo.png",
     "scheme": "catalogobtbes4u1kaelfuimye8fa",
@@ -15,7 +15,8 @@
       }
     },
     "android": {
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.aragonite200.catalogobtbes4u1kaelfuimye8fa"
     },
     "web": {
       "output": "static",
@@ -35,7 +36,10 @@
         }
       ],
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-web-browser",
+      "expo-widgets",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

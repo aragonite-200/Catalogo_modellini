@@ -5,6 +5,7 @@ import { Lucide } from '@react-native-vector-icons/lucide';
 import * as ImagePicker from 'expo-image-picker';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Host, Column, Button, BottomSheet, Text, Icon } from '@expo/ui';
 
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
@@ -43,6 +44,7 @@ export default function addModel() {
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
   const [scala, setscala] = useState<string | null>(null);
 
+  const [imagePicked, setImagePicked] = useState("");
   const [marca, onChangeMarca] = useState("");
   const [modello, onChangeModello] = useState("");
   const [produttore, onChangeProduttore] = useState("");
@@ -54,6 +56,8 @@ export default function addModel() {
   const [AlertVersione, setAlertVersione] = useState("");
   const [AlertPrezzo, setAlertPrezzo] = useState("");
   const [Alertscala, setAlertscala] = useState("");
+
+  const [isPresented, setIsPresented] = useState(false);
 
 
   const theme = useTheme();
@@ -77,8 +81,15 @@ export default function addModel() {
     return newPath;
   }
 
-   const pickImageAsync = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if(!permissionResult.granted) {
+      Alert.alert("Permesso necessario", "Per scattare una foto, devi concedere il permesso di accesso alla fotocamera.");
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       quality: 0.7,
@@ -87,10 +98,36 @@ export default function addModel() {
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
       set_image_path(await saveImageAndGetPath(result.assets[0].uri));
-
     } else {
-      alert('Non hai selezionato nessuna immagine.');
+      alert('Non hai scattato nessuna foto.');
     }
+  };
+
+   const pickImageAsync = async () => {
+   
+    try {
+        console.log("pickImageAsync called");
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          quality: 0.7,
+          });
+
+      if (!result.canceled) {
+        setSelectedImage(result.assets[0].uri);
+        set_image_path(await saveImageAndGetPath(result.assets[0].uri));
+
+      } else {
+        alert('Non hai selezionato nessuna immagine.');
+      }
+    } catch (error) {
+      console.log(error)
+    }
+    
+
+    
+
+    
   };
 
   const reset = () => {
@@ -111,6 +148,9 @@ export default function addModel() {
   }
 
   const save = async () => {
+    if (!selectedImage) {
+      setImagePicked("Devi selezionare o scattare una foto del modellino prima di salvarlo.");
+    }
     if (!marca) {
       setAlertMarca("Inserisci la marca del modellino");
     }
@@ -157,10 +197,10 @@ export default function addModel() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <ThemedView style={styles.container}>
           <ThemedView style={{ gap: 2 }}>
-            <ThemedText style={styles.title}>Aggiungi Modellino</ThemedText>
+            <ThemedText style={[styles.title, Platform.OS === "android" && { marginTop: 16 }]}>Aggiungi Modellino</ThemedText>
           </ThemedView>
 
-          <TouchableOpacity onPress={pickImageAsync}>
+          <TouchableOpacity onPress={() => setIsPresented(true)}>
             <ThemedBox style={{ width: "100%", height: 200, borderStyle: "dashed", borderWidth: 1, borderColor: theme.border, justifyContent: "center", alignItems: "center" }}>
               
               
@@ -181,6 +221,7 @@ export default function addModel() {
               )}
             </ThemedBox>
           </TouchableOpacity>
+          <ThemedText style={styles.alert}>{imagePicked}</ThemedText>
           
           <View>
             <ThemedText style={styles.label}>Marca Veicolo</ThemedText>
@@ -271,6 +312,40 @@ export default function addModel() {
               <ThemedText style={[{ color: "white", fontWeight: "bold", fontSize: 15 }]}>Aggiungi Modellino</ThemedText>
             </View>
           </TouchableOpacity>
+
+          {/* Bottom Sheet per scelta immagini o fotografia */}
+
+          <Host style={{ flex: 1 }}>
+            <BottomSheet isPresented={isPresented} onDismiss={() => setIsPresented(false)}>
+              <Column spacing={12}>
+                <Text textStyle={{ fontSize: 20, fontWeight: "bold", color: theme.text}}>Scegli l'azione che vuoi effettuare.</Text>
+
+                <Button variant="text" onPress={() => {pickImageAsync(); setIsPresented(false)}}>
+                  <Icon
+                    name={Icon.select({
+                      ios: 'photo',
+                      android: require('@expo/material-symbols/image.xml'),
+                    })}
+                    size={30}
+                    color={theme.text}
+                  />
+                  <Text textStyle={{ color: theme.text }} style={{paddingBottom: 12 }}>Carica immagine</Text>
+                </Button>
+
+                <Button variant="text" onPress={() => {takePhoto(); setIsPresented(false)}}>
+                   <Icon
+                    name={Icon.select({
+                      ios: 'camera',
+                      android: require('@expo/material-symbols/camera.xml'),
+                    })}
+                    size={30}
+                    color={theme.text}
+                  />
+                  <Text textStyle={{ color: theme.text }}>Scatta foto</Text>
+                </Button>
+              </Column>
+            </BottomSheet>
+          </Host>
 
         </ThemedView>
       </ScrollView>

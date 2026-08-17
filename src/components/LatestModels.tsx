@@ -66,7 +66,7 @@ export function LatestModels({ limit = 5 }: Props) {
           }}
         >
           <Image
-            source={{ uri: item.image }}
+            source={{ uri: item.foto_path }}
             style={{
               width: 50,
               height: 50,
@@ -74,10 +74,6 @@ export function LatestModels({ limit = 5 }: Props) {
               backgroundColor: "#ccc",
             }}
           />
-
-          <ThemedText style={{ fontSize: 14 }}>
-            {item.name}
-          </ThemedText>
         </View>
       ))}
     </View>

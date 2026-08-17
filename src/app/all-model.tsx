@@ -58,7 +58,7 @@ export default function AllModels() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
         <ThemedView style={styles.container}>
           <ThemedView style={{ gap: 2 }}>
-            <ThemedText style={styles.title}>La Collezione</ThemedText>
+            <ThemedText style={[styles.title, Platform.OS === "android" && { marginTop: 16 }]}>La Collezione</ThemedText>
           </ThemedView>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, justifyContent: "space-between"}}>

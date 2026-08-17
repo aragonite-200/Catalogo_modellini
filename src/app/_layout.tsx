@@ -13,12 +13,12 @@ export default function TabLayout() {
 
         <NativeTabs.Trigger name="all-model">
           <NativeTabs.Trigger.Label>Collezione</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="folder.fill" md="home" />
+          <NativeTabs.Trigger.Icon sf="folder.fill" md="folder" />
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="add-model" role='search'>
           <NativeTabs.Trigger.Label>Aggiungi</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="plus.circle" md="home" />
+          <NativeTabs.Trigger.Icon sf="plus.circle" md="add" />
         </NativeTabs.Trigger>
       </NativeTabs>
     </SQLiteProvider>

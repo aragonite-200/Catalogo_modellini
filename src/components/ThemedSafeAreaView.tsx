@@ -1,5 +1,5 @@
 import { SafeAreaView, type SafeAreaViewProps } from "react-native-screens/experimental";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform  } from "react-native";
 
 import { useTheme } from "@/hooks/use-theme";
 
@@ -16,6 +16,7 @@ export function ThemedSafeAreaView({
 
   return (
     <SafeAreaView
+
       style={[
         styles.base,
         {

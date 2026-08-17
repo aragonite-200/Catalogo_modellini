@@ -75,7 +75,7 @@ export default function HomeScreen() {
       <ScrollView style={{ flex: 1}} showsVerticalScrollIndicator={false}  refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> }>
         <ThemedView style={styles.container}>
           <ThemedView style={{ gap: 2 }}>
-            <ThemedText style={styles.title}>Bentornato</ThemedText>
+            <ThemedText style={[styles.title, Platform.OS === "android" && { marginTop: 16 }]}>Bentornato</ThemedText>
             <ThemedText style={styles.subtitle}>
               Ecco il riepilogo della tua collezione
             </ThemedText>
