@@ -62,24 +62,28 @@ export default function addModel() {
 
   const theme = useTheme();
 
+  async function ensureImagesDirectory(): Promise<string> {
+    const dir = `${FileSystem.documentDirectory}images/`;
+    const info = await FileSystem.getInfoAsync(dir);
+    if (!info.exists) {
+      await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+    }
+    return dir;
+  }
+
+  // --- SALVATAGGIO: ritorna SOLO il filename
   async function saveImageAndGetPath(temporaryUri: string): Promise<string> {
     const filename = `${Date.now()}_${temporaryUri.split('/').pop()}`;
-    const newPath = `${FileSystem.documentDirectory}images/${filename}`;
-
-    
-
-    await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}images/`, {
-      intermediates: true,
-    });
-
+    const dir = await ensureImagesDirectory();
 
     await FileSystem.copyAsync({
       from: temporaryUri,
-      to: newPath,
+      to: `${dir}${filename}`,
     });
 
-    return newPath;
+    return filename; 
   }
+
 
   const takePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();

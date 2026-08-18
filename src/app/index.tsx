@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-
+import { syncWidgetImages } from '../components/WindgetImagesync';
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
@@ -18,6 +18,11 @@ import { BarChartBox } from "@/components/CartesianChart";
 import { LatestModels } from '@/components/LatestModels';
 import { ThemedSafeAreaView } from '@/components/ThemedSafeAreaView';
 import { linkTo } from 'expo-router/build/global-state/router';
+
+import StatsWidget from '../../widgets/statsWidget';
+import addModelWidget from '../../widgets/addModelWidget';
+
+
 
 
 export default function HomeScreen() {
@@ -38,6 +43,12 @@ export default function HomeScreen() {
   const [statsScale, setStatsScale] = useState<StatScala[]>([]);
   const [statsMarche, setStatsMarche] = useState<StatMarca[]>([]);
 
+  if (Platform.OS === 'ios') {
+        syncWidgetImages(db);
+        StatsWidget.updateSnapshot({ totModellini: totaleModellini, valoreStimato: valore });
+        addModelWidget.updateSnapshot({});
+      }
+
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = () => {
@@ -48,8 +59,8 @@ export default function HomeScreen() {
     async function load() {
       const totModellini = await db.getFirstAsync<{ totale: number }>('SELECT COUNT(id) as totale FROM modellini');
       if (totModellini) {
-        setTotaleModellini(totModellini.totale);
         await AsyncStorage.setItem('totModellini', String(totaleModellini));
+        setTotaleModellini(totModellini.totale);
       }
 
       const  totValore = await db.getFirstAsync<{ totalePrezzo: number}>(`SELECT SUM(prezzo) as totalePrezzo FROM modellini`);
@@ -64,6 +75,8 @@ export default function HomeScreen() {
 
       const marcheResult = await db.getAllAsync<StatMarca>('SELECT marca, COUNT(id) as totalePerMarca FROM modellini GROUP BY marca ORDER BY totalePerMarca DESC');
       setStatsMarche(marcheResult);
+
+      
     }
 
   useEffect(() => {

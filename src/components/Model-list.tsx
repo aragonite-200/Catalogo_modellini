@@ -7,6 +7,7 @@ import { ThemedBox } from "./ThemedBox";
 import { Spacing } from '@/constants/theme';
 import { useTheme } from "@/hooks/use-theme";
 import { Host, ContextMenu, Button, Text as RNText } from '@expo/ui/swift-ui';
+import * as FileSystem from 'expo-file-system/legacy';
 
 type Model = {
   id: number; 
@@ -63,6 +64,11 @@ function confirmDelete(item: Model) {
   );
 }
 
+// --- LETTURA: ricostruisce il path assoluto CORRENTE a partire dal filename ---
+function getImageUri(filename: string): string {
+  return `${FileSystem.documentDirectory}images/${filename}`;
+}
+
   useEffect(() => {
     load();
   }, [query, refreshTrigger]);
@@ -98,7 +104,7 @@ function confirmDelete(item: Model) {
           <ThemedBox key={item.id} style={{ flex: 1, minWidth: 150, padding: 0, overflow: "hidden", minHeight: 150 }}>
             <TouchableOpacity onPress={() => setSelectedItem(item)} activeOpacity={0.8} onLongPress={() => confirmDelete(item)} delayLongPress={400}>
               <Image
-                source={{ uri: item.foto_path }}
+                source={{ uri: getImageUri(item.foto_path) }}
                 style={{ width: "100%", height: 100, backgroundColor: "#ccc" }}
               />
               <View style={{ padding: Spacing.two, paddingTop: Spacing.half }}>
@@ -146,7 +152,7 @@ function confirmDelete(item: Model) {
           {selectedItem && (
             <View style={[styles.card, { backgroundColor: theme.background ?? "#fff" }]}>
               <Image
-                source={{ uri: selectedItem.foto_path }}
+                source={{ uri: getImageUri(selectedItem.foto_path) }}
                 style={styles.cardImage}
               />
 

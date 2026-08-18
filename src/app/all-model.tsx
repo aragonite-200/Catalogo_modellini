@@ -18,6 +18,7 @@ import { ThemedSafeAreaView } from '@/components/ThemedSafeAreaView';
 import { linkTo } from 'expo-router/build/global-state/router';
 import { ThemedTextInput } from '@/components/ThemedTextInput';
 import { ModelList } from '@/components/Model-list';
+import * as FileSystem from 'expo-file-system/legacy';
 
 type Model = {
   id: string;
@@ -52,6 +53,10 @@ export default function AllModels() {
   useEffect(() => {
     aggiornaTotale();
   }, [])
+
+  function getImageUri(filename: string): string {
+  return `${FileSystem.documentDirectory}images/${filename}`;
+}
 
   return (
     <ThemedSafeAreaView>

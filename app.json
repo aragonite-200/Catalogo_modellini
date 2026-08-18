@@ -38,8 +38,38 @@
       "expo-font",
       "expo-sqlite",
       "expo-web-browser",
-      "expo-widgets",
-      "expo-image"
+      "expo-image",
+      
+      [
+       "expo-widgets",
+        {
+          "bundleIdentifier": "com.aragonite200.catalogobtbes4u1kaelfuimye8fa.widgets",
+          "groupIdentifier": "group.com.aragonite200.catalogobtbes4u1kaelfuimye8fa",
+          "widgets": [
+            {
+              "name": "statsWidget",
+              "displayName": "Statistiche",
+              "description": "Statistiche della tua collezione",
+              "supportedFamilies": ["systemSmall", "systemMedium"],
+              "contentMarginsDisabled": true,
+            },
+            {
+              "name": "lastArrivalsWidget",
+              "displayName": "Ultime Arrivate",
+              "description": "Mostra le ultime card arrivate",
+              "supportedFamilies": ["systemSmall"],
+              "contentMarginsDisabled": true,
+            },
+            {
+              "name": "addModelWidget",
+              "displayName": "Aggiungi Modello",
+              "description": "Aggiungi un nuovo modello alla tua collezione",
+              "supportedFamilies": ["systemSmall"],
+              "contentMarginsDisabled": true,
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

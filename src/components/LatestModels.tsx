@@ -3,6 +3,7 @@ import { View, Image, TouchableOpacity } from "react-native";
 import { ThemedText } from "./themed-text";
 import { linkTo } from 'expo-router/build/global-state/router';
 import { useSQLiteContext } from 'expo-sqlite';
+import * as FileSystem from 'expo-file-system/legacy';
 
 type Model = {
   id: number; 
@@ -34,6 +35,10 @@ export function LatestModels({ limit = 5 }: Props) {
   load();
 }, [limit]);
 
+function getImageUri(filename: string): string {
+  return `${FileSystem.documentDirectory}images/${filename}`;
+}
+
 //TODO modificare icona e testo quando non ci sono modelli
   if (data.length === 0 ) {
     return (
@@ -60,13 +65,12 @@ export function LatestModels({ limit = 5 }: Props) {
         <View
           key={item.id}
           style={{
-            flexDirection: "row",
-            alignItems: "center",
+            alignItems: "left",
             gap: 12,
           }}
         >
           <Image
-            source={{ uri: item.foto_path }}
+            source={{ uri: getImageUri(item.foto_path) }}
             style={{
               width: 50,
               height: 50,
