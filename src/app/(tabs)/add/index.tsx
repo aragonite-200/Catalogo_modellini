@@ -1,30 +1,27 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet, ScrollView, View, TouchableOpacity, TextInput, Image, Alert} from 'react-native';
-import {useState, useEffect} from 'react';
-import { Lucide } from '@react-native-vector-icons/lucide';
-import * as ImagePicker from 'expo-image-picker';
-import { useSQLiteContext } from 'expo-sqlite';
-import * as FileSystem from 'expo-file-system/legacy';
-import { Host, Column, Button, BottomSheet, Text, Icon } from '@expo/ui';
+import { BottomSheet, Button, Column, Host, Icon, Text } from "@expo/ui";
+import * as FileSystem from "expo-file-system/legacy";
+import * as ImagePicker from "expo-image-picker";
+import { useSQLiteContext } from "expo-sqlite";
+import { useState } from "react";
+import {
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View
+} from "react-native";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import {ThemedBox} from '@/components/ThemedBox';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { PieChartBox } from "@/components/PieChartBox";
-import { BarChartBox } from "@/components/CartesianChart";
-import { LatestModels } from '@/components/LatestModels';
-import { ThemedSafeAreaView } from '@/components/ThemedSafeAreaView';
-import { linkTo } from 'expo-router/build/global-state/router';
-import { ThemedTextInput } from '@/components/ThemedTextInput';
-import { ModelList } from '@/components/Model-list';
-import { ThemedLucideIcon } from '@/components/ThemedLucidIcon';
-import { useTheme } from '@/hooks/use-theme';
-import { ThemedPicker } from '@/components/Themed-picekr';
-import { Color } from 'expo-router';
+import { ThemedPicker } from "@/components/Themed-picekr";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { ThemedBox } from "@/components/ThemedBox";
+import { ThemedLucideIcon } from "@/components/ThemedLucidIcon";
+import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView";
+import { ThemedTextInput } from "@/components/ThemedTextInput";
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { linkTo } from "expo-router/build/global-state/router";
 
 type Model = {
   id: string;
@@ -35,13 +32,12 @@ type Model = {
   createdAt: string;
 };
 
-
-
 export default function addModel() {
-  
   const db = useSQLiteContext();
   const [image_path, set_image_path] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined,
+  );
   const [scala, setscala] = useState<string | null>(null);
 
   const [imagePicked, setImagePicked] = useState("");
@@ -59,7 +55,6 @@ export default function addModel() {
 
   const [isPresented, setIsPresented] = useState(false);
 
-
   const theme = useTheme();
 
   async function ensureImagesDirectory(): Promise<string> {
@@ -73,7 +68,7 @@ export default function addModel() {
 
   // --- SALVATAGGIO: ritorna SOLO il filename
   async function saveImageAndGetPath(temporaryUri: string): Promise<string> {
-    const filename = `${Date.now()}_${temporaryUri.split('/').pop()}`;
+    const filename = `${Date.now()}_${temporaryUri.split("/").pop()}`;
     const dir = await ensureImagesDirectory();
 
     await FileSystem.copyAsync({
@@ -81,20 +76,22 @@ export default function addModel() {
       to: `${dir}${filename}`,
     });
 
-    return filename; 
+    return filename;
   }
-
 
   const takePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
-    if(!permissionResult.granted) {
-      Alert.alert("Permesso necessario", "Per scattare una foto, devi concedere il permesso di accesso alla fotocamera.");
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permesso necessario",
+        "Per scattare una foto, devi concedere il permesso di accesso alla fotocamera.",
+      );
       return;
     }
 
     let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       quality: 0.7,
     });
@@ -103,35 +100,28 @@ export default function addModel() {
       setSelectedImage(result.assets[0].uri);
       set_image_path(await saveImageAndGetPath(result.assets[0].uri));
     } else {
-      alert('Non hai scattato nessuna foto.');
+      alert("Non hai scattato nessuna foto.");
     }
   };
 
-   const pickImageAsync = async () => {
-   
+  const pickImageAsync = async () => {
     try {
-        console.log("pickImageAsync called");
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 0.7,
-          });
+      console.log("pickImageAsync called");
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 0.7,
+      });
 
       if (!result.canceled) {
         setSelectedImage(result.assets[0].uri);
         set_image_path(await saveImageAndGetPath(result.assets[0].uri));
-
       } else {
-        alert('Non hai selezionato nessuna immagine.');
+        alert("Non hai selezionato nessuna immagine.");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-    
-
-    
-
-    
   };
 
   const reset = () => {
@@ -149,11 +139,13 @@ export default function addModel() {
     setAlertVersione("");
     setAlertPrezzo("");
     setAlertscala("");
-  }
+  };
 
   const save = async () => {
     if (!selectedImage) {
-      setImagePicked("Devi selezionare o scattare una foto del modellino prima di salvarlo.");
+      setImagePicked(
+        "Devi selezionare o scattare una foto del modellino prima di salvarlo.",
+      );
     }
     if (!marca) {
       setAlertMarca("Inserisci la marca del modellino");
@@ -177,37 +169,62 @@ export default function addModel() {
       return;
     }
 
-
-    console.log("Salvataggio modellino:", { marca, modello, produttore, versione, prezzo, scala, selectedImage });
+    console.log("Salvataggio modellino:", {
+      marca,
+      modello,
+      produttore,
+      versione,
+      prezzo,
+      scala,
+      selectedImage,
+    });
 
     const result = await db.runAsync(
-      'INSERT INTO modellini (marca, modello, produttore, versione, prezzo, scala, foto_path) VALUES (?, ?, ?, ?, ?, ?, ? )',
-      [marca, modello, produttore, versione, prezzo ? parseFloat(prezzo) : null, scala, image_path ]
-    )
+      "INSERT INTO modellini (marca, modello, produttore, versione, prezzo, scala, foto_path) VALUES (?, ?, ?, ?, ?, ?, ? )",
+      [
+        marca,
+        modello,
+        produttore,
+        versione,
+        prezzo ? parseFloat(prezzo) : null,
+        scala,
+        image_path,
+      ],
+    );
 
-    if(result) {
+    if (result) {
       Alert.alert("Salvato!", "Modellino aggiunto con successo!", [
         {
           text: "OK",
-          onPress: () => {linkTo("/all-model"); reset();},
-        }
-      ])
+          onPress: () => {
+            linkTo("/(tabs)/collection");
+            reset();
+          },
+        },
+      ]);
     }
-
-  }
+  };
 
   return (
     <ThemedSafeAreaView>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         <ThemedView style={styles.container}>
-          <ThemedView style={{ gap: 2 }}>
-            <ThemedText style={[styles.title, Platform.OS === "android" && { marginTop: 16 }]}>Aggiungi Modellino</ThemedText>
-          </ThemedView>
-
           <TouchableOpacity onPress={() => setIsPresented(true)}>
-            <ThemedBox style={{ width: "100%", height: 200, borderStyle: "dashed", borderWidth: 1, borderColor: theme.border, justifyContent: "center", alignItems: "center" }}>
-              
-              
+            <ThemedBox
+              style={{
+                width: "100%",
+                height: 200,
+                borderStyle: "dashed",
+                borderWidth: 1,
+                borderColor: theme.border,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               {selectedImage ? (
                 <Image
                   source={{ uri: selectedImage }}
@@ -215,18 +232,23 @@ export default function addModel() {
                 />
               ) : (
                 <>
-                <View style={{ alignItems: "center" }}>
-                
-                    <ThemedLucideIcon style={{ opacity: 0.5,  }} name="camera" size={50} />
+                  <View style={{ alignItems: "center" }}>
+                    <ThemedLucideIcon
+                      style={{ opacity: 0.5 }}
+                      name="camera"
+                      size={50}
+                    />
                     <ThemedText>Aggiungi foto</ThemedText>
-                    <ThemedText style={styles.subtitle}>Tocca per scattare o caricare</ThemedText>
+                    <ThemedText style={styles.subtitle}>
+                      Tocca per scattare o caricare
+                    </ThemedText>
                   </View>
                 </>
               )}
             </ThemedBox>
           </TouchableOpacity>
           <ThemedText style={styles.alert}>{imagePicked}</ThemedText>
-          
+
           <View>
             <ThemedText style={styles.label}>Marca Veicolo</ThemedText>
             <ThemedTextInput
@@ -312,35 +334,76 @@ export default function addModel() {
           </View>
 
           <TouchableOpacity onPress={save}>
-            <View style={{ width: "100%", height: 50, justifyContent: "center", alignItems: "center", backgroundColor: theme.primary, borderRadius: 8 }}>
-              <ThemedText style={[{ color: "white", fontWeight: "bold", fontSize: 15 }]}>Aggiungi Modellino</ThemedText>
+            <View
+              style={{
+                width: "100%",
+                height: 50,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: theme.primary,
+                borderRadius: 8,
+              }}
+            >
+              <ThemedText
+                style={[{ color: "white", fontWeight: "bold", fontSize: 15 }]}
+              >
+                Aggiungi Modellino
+              </ThemedText>
             </View>
           </TouchableOpacity>
 
           {/* Bottom Sheet per scelta immagini o fotografia */}
 
           <Host style={{ flex: 1 }}>
-            <BottomSheet isPresented={isPresented} onDismiss={() => setIsPresented(false)}>
+            <BottomSheet
+              isPresented={isPresented}
+              onDismiss={() => setIsPresented(false)}
+            >
               <Column spacing={12}>
-                <Text textStyle={{ fontSize: 20, fontWeight: "bold", color: theme.text}}>Scegli l'azione che vuoi effettuare.</Text>
+                <Text
+                  textStyle={{
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    color: theme.text,
+                  }}
+                >
+                  Scegli l'azione che vuoi effettuare.
+                </Text>
 
-                <Button variant="text" onPress={() => {pickImageAsync(); setIsPresented(false)}}>
+                <Button
+                  variant="text"
+                  onPress={() => {
+                    pickImageAsync();
+                    setIsPresented(false);
+                  }}
+                >
                   <Icon
                     name={Icon.select({
-                      ios: 'photo',
-                      android: require('@expo/material-symbols/image.xml'),
+                      ios: "photo",
+                      android: require("@expo/material-symbols/image.xml"),
                     })}
                     size={30}
                     color={theme.text}
                   />
-                  <Text textStyle={{ color: theme.text }} style={{paddingBottom: 12 }}>Carica immagine</Text>
+                  <Text
+                    textStyle={{ color: theme.text }}
+                    style={{ paddingBottom: 12 }}
+                  >
+                    Carica immagine
+                  </Text>
                 </Button>
 
-                <Button variant="text" onPress={() => {takePhoto(); setIsPresented(false)}}>
-                   <Icon
+                <Button
+                  variant="text"
+                  onPress={() => {
+                    takePhoto();
+                    setIsPresented(false);
+                  }}
+                >
+                  <Icon
                     name={Icon.select({
-                      ios: 'camera',
-                      android: require('@expo/material-symbols/camera.xml'),
+                      ios: "camera",
+                      android: require("@expo/material-symbols/camera.xml"),
                     })}
                     size={30}
                     color={theme.text}
@@ -350,7 +413,6 @@ export default function addModel() {
               </Column>
             </BottomSheet>
           </Host>
-
         </ThemedView>
       </ScrollView>
     </ThemedSafeAreaView>
@@ -358,7 +420,6 @@ export default function addModel() {
 }
 
 const styles = StyleSheet.create({
-
   container: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.three,
@@ -390,17 +451,16 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 25,
     fontWeight: "bold",
-    
   },
 
   chart: {
-    flex: 1, 
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
 
   legend: {
-    flex: 1, 
+    flex: 1,
     gap: 6,
   },
 

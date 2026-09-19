@@ -1,20 +1,20 @@
+import * as FileSystem from "expo-file-system/legacy";
+import { linkTo } from "expo-router/build/global-state/router";
+import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
-import { View, Image, TouchableOpacity } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "./themed-text";
-import { linkTo } from 'expo-router/build/global-state/router';
-import { useSQLiteContext } from 'expo-sqlite';
-import * as FileSystem from 'expo-file-system/legacy';
 
 type Model = {
-  id: number; 
+  id: number;
   marca: string;
   modello: string;
   produttore: string;
-  versione: string | null; 
-  prezzo: number | null;   
+  versione: string | null;
+  prezzo: number | null;
   scala: string;
   foto_path: string;
-  created_at: string; 
+  created_at: string;
 };
 type Props = {
   limit?: number;
@@ -25,41 +25,42 @@ export function LatestModels({ limit = 5 }: Props) {
   const [data, setData] = useState<Model[]>([]);
 
   useEffect(() => {
-  async function load() {
-    const rows = await db.getAllAsync<Model>(
-      'SELECT * FROM modellini ORDER BY created_at DESC LIMIT ?',
-      limit
-    );
-    setData(rows);
+    async function load() {
+      const rows = await db.getAllAsync<Model>(
+        "SELECT * FROM modellini ORDER BY created_at DESC LIMIT ?",
+        limit,
+      );
+      setData(rows);
+    }
+    load();
+  }, [limit]);
+
+  function getImageUri(filename: string): string {
+    return `${FileSystem.documentDirectory}images/${filename}`;
   }
-  load();
-}, [limit]);
 
-function getImageUri(filename: string): string {
-  return `${FileSystem.documentDirectory}images/${filename}`;
-}
-
-//TODO modificare icona e testo quando non ci sono modelli
-  if (data.length === 0 ) {
+  //TODO modificare icona e testo quando non ci sono modelli
+  if (data.length === 0) {
     return (
-        <TouchableOpacity onPress={() => {
-          linkTo("/add-model");
-        }}>
-            <View style={{ alignItems: "center", paddingVertical: 20 }}>
-            <ThemedText style={{ fontSize: 14, opacity: 0.6 }}>
-                Nessun modello inserito
-            </ThemedText>
+      <TouchableOpacity
+        onPress={() => {
+          linkTo("/(tabs)/add");
+        }}
+      >
+        <View style={{ alignItems: "center", paddingVertical: 20 }}>
+          <ThemedText style={{ fontSize: 14, opacity: 0.6 }}>
+            Nessun modello inserito
+          </ThemedText>
 
-            <ThemedText style={{ fontSize: 12, opacity: 0.4 }}>
-                Aggiungi il tuo primo modellino 🚗 
-            </ThemedText>
-            </View>
-        </TouchableOpacity>
+          <ThemedText style={{ fontSize: 12, opacity: 0.4 }}>
+            Aggiungi il tuo primo modellino 🚗
+          </ThemedText>
+        </View>
+      </TouchableOpacity>
     );
   }
 
   return (
-
     <View style={{ gap: 12 }}>
       {data.map((item) => (
         <View

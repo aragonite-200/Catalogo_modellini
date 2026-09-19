@@ -1,24 +1,32 @@
-import { useEffect, useState } from "react";
-import { View, Image, TouchableOpacity, Modal, Text, ScrollView, StyleSheet, Alert} from "react-native";
-import { ThemedText } from "./themed-text";
-import { linkTo } from 'expo-router/build/global-state/router';
-import { useSQLiteContext } from 'expo-sqlite';
-import { ThemedBox } from "./ThemedBox";
-import { Spacing } from '@/constants/theme';
+import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { Host, ContextMenu, Button, Text as RNText } from '@expo/ui/swift-ui';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from "expo-file-system/legacy";
+import { linkTo } from "expo-router/build/global-state/router";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { ThemedText } from "./themed-text";
+import { ThemedBox } from "./ThemedBox";
 
 type Model = {
-  id: number; 
+  id: number;
   marca: string;
   modello: string;
   produttore: string;
-  versione: string | null; 
-  prezzo: number | null;   
+  versione: string | null;
+  prezzo: number | null;
   scala: string;
   foto_path: string;
-  created_at: string; 
+  created_at: string;
 };
 
 interface ModelListProps {
@@ -34,40 +42,40 @@ export function ModelList({ query, refreshTrigger }: ModelListProps) {
 
   async function load() {
     const rows = await db.getAllAsync<Model>(
-      'SELECT * FROM modellini ORDER BY created_at DESC'
+      "SELECT * FROM modellini ORDER BY created_at DESC",
     );
     setData(rows);
   }
 
   async function deleteModel(item: Model) {
-  try {
-    await db.runAsync('DELETE FROM modellini WHERE id = ?', [item.id]);
-    await load(); // ricarica la lista aggiornata
-  } catch (error) {
-    console.error("Errore durante la cancellazione:", error);
-    Alert.alert("Errore", "Non è stato possibile cancellare il modellino.");
+    try {
+      await db.runAsync("DELETE FROM modellini WHERE id = ?", [item.id]);
+      await load(); // ricarica la lista aggiornata
+    } catch (error) {
+      console.error("Errore durante la cancellazione:", error);
+      Alert.alert("Errore", "Non è stato possibile cancellare il modellino.");
+    }
   }
-}
 
-function confirmDelete(item: Model) {
-  Alert.alert(
-    "Elimina modellino",
-    `Vuoi eliminare "${item.marca} ${item.modello}"? Questa azione non può essere annullata.`,
-    [
-      { text: "Annulla", style: "cancel" },
-      {
-        text: "Elimina",
-        style: "destructive",
-        onPress: () => deleteModel(item),
-      },
-    ]
-  );
-}
+  function confirmDelete(item: Model) {
+    Alert.alert(
+      "Elimina modellino",
+      `Vuoi eliminare "${item.marca} ${item.modello}"? Questa azione non può essere annullata.`,
+      [
+        { text: "Annulla", style: "cancel" },
+        {
+          text: "Elimina",
+          style: "destructive",
+          onPress: () => deleteModel(item),
+        },
+      ],
+    );
+  }
 
-// --- LETTURA: ricostruisce il path assoluto CORRENTE a partire dal filename ---
-function getImageUri(filename: string): string {
-  return `${FileSystem.documentDirectory}images/${filename}`;
-}
+  // --- LETTURA: ricostruisce il path assoluto CORRENTE a partire dal filename ---
+  function getImageUri(filename: string): string {
+    return `${FileSystem.documentDirectory}images/${filename}`;
+  }
 
   useEffect(() => {
     load();
@@ -76,13 +84,17 @@ function getImageUri(filename: string): string {
   //TODO modificare icona e testo quando non ci sono modelli
   if (data.length === 0) {
     return (
-      <TouchableOpacity onPress={() => { linkTo("/add-model"); }}>
+      <TouchableOpacity
+        onPress={() => {
+          linkTo("/(tabs)/add");
+        }}
+      >
         <View style={{ alignItems: "center", paddingVertical: 20 }}>
           <ThemedText style={{ fontSize: 14, opacity: 0.6 }}>
             Nessun modello inserito
           </ThemedText>
           <ThemedText style={{ fontSize: 12, opacity: 0.4 }}>
-            Aggiungi il tuo primo modellino 🚗 
+            Aggiungi il tuo primo modellino 🚗
           </ThemedText>
         </View>
       </TouchableOpacity>
@@ -99,42 +111,69 @@ function getImageUri(filename: string): string {
           justifyContent: "space-between",
         }}
       >
-        {data.map((item) => { if(item.produttore.toLowerCase().includes(query.toLowerCase()) ||item.marca.toLowerCase().includes(query.toLowerCase()) || item.modello.toLowerCase().includes(query.toLowerCase()) || item.scala.toLowerCase().includes(query.toLowerCase())) return (
-          
-          <ThemedBox key={item.id} style={{ flex: 1, minWidth: 150, padding: 0, overflow: "hidden", minHeight: 150 }}>
-            <TouchableOpacity onPress={() => setSelectedItem(item)} activeOpacity={0.8} onLongPress={() => confirmDelete(item)} delayLongPress={400}>
-              <Image
-                source={{ uri: getImageUri(item.foto_path) }}
-                style={{ width: "100%", height: 100, backgroundColor: "#ccc" }}
-              />
-              <View style={{ padding: Spacing.two, paddingTop: Spacing.half }}>
-                <ThemedText style={{ fontWeight: "bold" }} type="default">
-                  {item.marca} {item.modello}
-                </ThemedText>
-                <ThemedText style={{ fontSize: 14, opacity: 0.7 }}>
-                  {item.produttore}
-                </ThemedText>
-                <View style={{ alignSelf: "flex-end" }}>
-                  <ThemedText style={{
-                    borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10,
-                    borderWidth: 1, borderColor: theme.primary,
-                    backgroundColor: theme.primary + "20", fontSize: 14, opacity: 0.7
-                  }}>
-                    {item.scala}
-                  </ThemedText>
-                </View>
-              </View>
-            </TouchableOpacity>
-            
-            
-          </ThemedBox>
-          
-        )})}
-
-         
-        
+        {data.map((item) => {
+          if (
+            item.produttore.toLowerCase().includes(query.toLowerCase()) ||
+            item.marca.toLowerCase().includes(query.toLowerCase()) ||
+            item.modello.toLowerCase().includes(query.toLowerCase()) ||
+            item.scala.toLowerCase().includes(query.toLowerCase())
+          )
+            return (
+              <ThemedBox
+                key={item.id}
+                style={{
+                  flex: 1,
+                  minWidth: 150,
+                  padding: 0,
+                  overflow: "hidden",
+                  minHeight: 150,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setSelectedItem(item)}
+                  activeOpacity={0.8}
+                  onLongPress={() => confirmDelete(item)}
+                  delayLongPress={400}
+                >
+                  <Image
+                    source={{ uri: getImageUri(item.foto_path) }}
+                    style={{
+                      width: "100%",
+                      height: 100,
+                      backgroundColor: "#ccc",
+                    }}
+                  />
+                  <View
+                    style={{ padding: Spacing.two, paddingTop: Spacing.half }}
+                  >
+                    <ThemedText style={{ fontWeight: "bold" }} type="default">
+                      {item.marca} {item.modello}
+                    </ThemedText>
+                    <ThemedText style={{ fontSize: 14, opacity: 0.7 }}>
+                      {item.produttore}
+                    </ThemedText>
+                    <View style={{ alignSelf: "flex-end" }}>
+                      <ThemedText
+                        style={{
+                          borderRadius: 8,
+                          paddingVertical: 4,
+                          paddingHorizontal: 10,
+                          borderWidth: 1,
+                          borderColor: theme.primary,
+                          backgroundColor: theme.primary + "20",
+                          fontSize: 14,
+                          opacity: 0.7,
+                        }}
+                      >
+                        {item.scala}
+                      </ThemedText>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </ThemedBox>
+            );
+        })}
       </View>
-     
 
       <Modal
         animationType="fade"
@@ -150,7 +189,12 @@ function getImageUri(filename: string): string {
           />
 
           {selectedItem && (
-            <View style={[styles.card, { backgroundColor: theme.background ?? "#fff" }]}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: theme.background ?? "#fff" },
+              ]}
+            >
               <Image
                 source={{ uri: getImageUri(selectedItem.foto_path) }}
                 style={styles.cardImage}
@@ -163,12 +207,23 @@ function getImageUri(filename: string): string {
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
 
-              <ScrollView style={styles.cardBody} contentContainerStyle={{ paddingBottom: 20 }}>
+              <ScrollView
+                style={styles.cardBody}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              >
                 <View style={styles.titleRow}>
                   <ThemedText style={styles.title}>
                     {selectedItem.marca} {selectedItem.modello}
                   </ThemedText>
-                  <View style={[styles.badge, { borderColor: theme.primary, backgroundColor: theme.primary + "20" }]}>
+                  <View
+                    style={[
+                      styles.badge,
+                      {
+                        borderColor: theme.primary,
+                        backgroundColor: theme.primary + "20",
+                      },
+                    ]}
+                  >
                     <ThemedText style={{ fontSize: 13, opacity: 0.8 }}>
                       {selectedItem.scala}
                     </ThemedText>
@@ -176,19 +231,35 @@ function getImageUri(filename: string): string {
                 </View>
 
                 <View style={styles.infoList}>
-                  
-                  <InfoRow label="Produttore" value={selectedItem.produttore} theme={theme} />
+                  <InfoRow
+                    label="Produttore"
+                    value={selectedItem.produttore}
+                    theme={theme}
+                  />
                   {selectedItem.versione && (
-                    <InfoRow label="Versione" value={selectedItem.versione} theme={theme} />
+                    <InfoRow
+                      label="Versione"
+                      value={selectedItem.versione}
+                      theme={theme}
+                    />
                   )}
                   {selectedItem.prezzo != null && (
-                    <InfoRow label="Prezzo" value={`€ ${selectedItem.prezzo.toFixed(2)}`} theme={theme} />
+                    <InfoRow
+                      label="Prezzo"
+                      value={`€ ${selectedItem.prezzo.toFixed(2)}`}
+                      theme={theme}
+                    />
                   )}
                   <InfoRow
                     label="Aggiunto il"
-                    value={new Date(selectedItem.created_at).toLocaleDateString("it-IT", {
-                      day: "2-digit", month: "long", year: "numeric"
-                    })}
+                    value={new Date(selectedItem.created_at).toLocaleDateString(
+                      "it-IT",
+                      {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      },
+                    )}
                     theme={theme}
                   />
                 </View>
@@ -201,11 +272,21 @@ function getImageUri(filename: string): string {
   );
 }
 
-function InfoRow({ label, value, theme }: { label: string; value: string; theme: any }) {
+function InfoRow({
+  label,
+  value,
+  theme,
+}: {
+  label: string;
+  value: string;
+  theme: any;
+}) {
   return (
     <View style={styles.infoRow}>
       <ThemedText style={{ fontSize: 13, opacity: 0.5 }}>{label}</ThemedText>
-      <ThemedText style={{ fontSize: 15, fontWeight: "500" }}>{value}</ThemedText>
+      <ThemedText style={{ fontSize: 15, fontWeight: "500" }}>
+        {value}
+      </ThemedText>
     </View>
   );
 }

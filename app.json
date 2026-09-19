@@ -11,7 +11,8 @@
       "icon": "./assets/images/app_logo.png",
       "bundleIdentifier": "com.aragonite200.catalogobtbes4u1kaelfuimye8fa",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true
       }
     },
     "android": {

@@ -1,27 +1,25 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { SQLiteProvider } from 'expo-sqlite';
-import { initializeDatabase } from '@/utils/db_init';
+import { initializeDatabase } from "@/utils/db_init";
+import { Stack } from "expo-router";
+import { SQLiteProvider } from "expo-sqlite";
+import { useColorScheme } from "react-native";
 
-export default function TabLayout() {
+export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   return (
     <SQLiteProvider databaseName="database" onInit={initializeDatabase}>
-      <NativeTabs>
-        <NativeTabs.Trigger name="index">
-          <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
-        </NativeTabs.Trigger>
-
-        <NativeTabs.Trigger name="all-model">
-          <NativeTabs.Trigger.Label>Collezione</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="folder.fill" md="folder" />
-        </NativeTabs.Trigger>
-
-        <NativeTabs.Trigger name="add-model" role='search'>
-          <NativeTabs.Trigger.Label>Aggiungi</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="plus.circle" md="add" />
-        </NativeTabs.Trigger>
-      </NativeTabs>
+      <Stack
+        initialRouteName="index"
+        screenOptions={{
+          headerShown: true,
+          statusBarStyle: isDark ? "light" : "dark",
+          statusBarBackgroundColor: isDark ? "#000000" : "#F3F4F6",
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
     </SQLiteProvider>
   );
 }
-

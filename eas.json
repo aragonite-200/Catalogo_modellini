@@ -11,6 +11,10 @@
         "simulator": true
       }
     },
+    "test": {
+      "developmentClient": true,
+      "distribution": "internal",
+    },
     "preview": {
       "distribution": "internal"
     },
