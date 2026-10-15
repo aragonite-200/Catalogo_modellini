@@ -1,15 +1,17 @@
 import { BottomSheet, Button, Column, Host, Icon, Text } from "@expo/ui";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { ThemedPicker } from "@/components/Themed-picekr";
@@ -21,19 +23,12 @@ import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView";
 import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { linkTo } from "expo-router/build/global-state/router";
-
-type Model = {
-  id: string;
-  name: string;
-  image: string;
-  marca: string;
-  scala: string;
-  createdAt: string;
-};
 
 export default function addModel() {
   const db = useSQLiteContext();
+  const router = useRouter();
+  const theme = useTheme();
+
   const [image_path, set_image_path] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | undefined>(
     undefined,
@@ -55,7 +50,14 @@ export default function addModel() {
 
   const [isPresented, setIsPresented] = useState(false);
 
-  const theme = useTheme();
+  // Su iOS la sheet SwiftUI è un modale: se lanci il picker mentre sta ancora
+  // animando la chiusura, il picker non si presenta o viene chiuso subito.
+  // Chiudiamo la sheet e lanciamo l'azione solo dopo che l'animazione è finita.
+  const closeSheetThen = (action: () => void) => {
+    setIsPresented(false);
+    const delay = Platform.OS === "ios" ? 500 : 0;
+    setTimeout(action, delay);
+  };
 
   async function ensureImagesDirectory(): Promise<string> {
     const dir = `${FileSystem.documentDirectory}images/`;
@@ -66,7 +68,7 @@ export default function addModel() {
     return dir;
   }
 
-  // --- SALVATAGGIO: ritorna SOLO il filename
+  // Salva l'immagine e ritorna SOLO il filename
   async function saveImageAndGetPath(temporaryUri: string): Promise<string> {
     const filename = `${Date.now()}_${temporaryUri.split("/").pop()}`;
     const dir = await ensureImagesDirectory();
@@ -79,48 +81,54 @@ export default function addModel() {
     return filename;
   }
 
-  const takePhoto = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+  const handleImageResult = async (result: ImagePicker.ImagePickerResult) => {
+    // Se l'utente annulla non facciamo nulla: è un'azione normale.
+    if (result.canceled) return;
 
-    if (!permissionResult.granted) {
-      Alert.alert(
-        "Permesso necessario",
-        "Per scattare una foto, devi concedere il permesso di accesso alla fotocamera.",
-      );
-      return;
-    }
-
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      quality: 0.7,
-    });
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      set_image_path(await saveImageAndGetPath(result.assets[0].uri));
-    } else {
-      alert("Non hai scattato nessuna foto.");
-    }
+    const uri = result.assets[0].uri;
+    setSelectedImage(uri);
+    setImagePicked("");
+    set_image_path(await saveImageAndGetPath(uri));
   };
 
-  const pickImageAsync = async () => {
+  const takePhoto = async () => {
     try {
-      console.log("pickImageAsync called");
-      let result = await ImagePicker.launchImageLibraryAsync({
+      const permissionResult =
+        await ImagePicker.requestCameraPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert(
+          "Permesso necessario",
+          "Per scattare una foto, devi concedere il permesso di accesso alla fotocamera.",
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
         quality: 0.7,
       });
 
-      if (!result.canceled) {
-        setSelectedImage(result.assets[0].uri);
-        set_image_path(await saveImageAndGetPath(result.assets[0].uri));
-      } else {
-        alert("Non hai selezionato nessuna immagine.");
-      }
+      await handleImageResult(result);
     } catch (error) {
-      console.log(error);
+      console.log("takePhoto error:", error);
+      Alert.alert("Errore", "Impossibile aprire la fotocamera.");
+    }
+  };
+
+  const pickImageAsync = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 0.7,
+      });
+
+      await handleImageResult(result);
+    } catch (error) {
+      console.log("pickImageAsync error:", error);
+      Alert.alert("Errore", "Impossibile aprire la galleria.");
     }
   };
 
@@ -128,6 +136,7 @@ export default function addModel() {
     set_image_path("");
     setSelectedImage(undefined);
     setscala(null);
+    setImagePicked("");
     onChangeMarca("");
     onChangeModello("");
     onChangeProduttore("");
@@ -142,6 +151,14 @@ export default function addModel() {
   };
 
   const save = async () => {
+    // Pulisco gli errori della volta precedente
+    setImagePicked("");
+    setAlertMarca("");
+    setAlertModello("");
+    setAlertProduttore("");
+    setAlertPrezzo("");
+    setAlertscala("");
+
     if (!selectedImage) {
       setImagePicked(
         "Devi selezionare o scattare una foto del modellino prima di salvarlo.",
@@ -160,7 +177,7 @@ export default function addModel() {
       setAlertscala("Inserisci la scala del modellino");
     }
 
-    if (!marca || !modello || !produttore || !scala) {
+    if (!selectedImage || !marca || !modello || !produttore || !scala) {
       return;
     }
 
@@ -169,39 +186,34 @@ export default function addModel() {
       return;
     }
 
-    console.log("Salvataggio modellino:", {
-      marca,
-      modello,
-      produttore,
-      versione,
-      prezzo,
-      scala,
-      selectedImage,
-    });
+    try {
+      const result = await db.runAsync(
+        "INSERT INTO modellini (marca, modello, produttore, versione, prezzo, scala, foto_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+          marca,
+          modello,
+          produttore,
+          versione,
+          prezzo ? parseFloat(prezzo) : null,
+          scala,
+          image_path,
+        ],
+      );
 
-    const result = await db.runAsync(
-      "INSERT INTO modellini (marca, modello, produttore, versione, prezzo, scala, foto_path) VALUES (?, ?, ?, ?, ?, ?, ? )",
-      [
-        marca,
-        modello,
-        produttore,
-        versione,
-        prezzo ? parseFloat(prezzo) : null,
-        scala,
-        image_path,
-      ],
-    );
-
-    if (result) {
-      Alert.alert("Salvato!", "Modellino aggiunto con successo!", [
-        {
-          text: "OK",
-          onPress: () => {
-            linkTo("/(tabs)/collection");
-            reset();
+      if (result) {
+        Alert.alert("Salvato!", "Modellino aggiunto con successo!", [
+          {
+            text: "OK",
+            onPress: () => {
+              reset();
+              router.replace("/(tabs)/collection");
+            },
           },
-        },
-      ]);
+        ]);
+      }
+    } catch (error) {
+      console.log("save error:", error);
+      Alert.alert("Errore", "Non sono riuscito a salvare il modellino.");
     }
   };
 
@@ -231,23 +243,23 @@ export default function addModel() {
                   style={{ width: "100%", height: "100%" }}
                 />
               ) : (
-                <>
-                  <View style={{ alignItems: "center" }}>
-                    <ThemedLucideIcon
-                      style={{ opacity: 0.5 }}
-                      name="camera"
-                      size={50}
-                    />
-                    <ThemedText>Aggiungi foto</ThemedText>
-                    <ThemedText style={styles.subtitle}>
-                      Tocca per scattare o caricare
-                    </ThemedText>
-                  </View>
-                </>
+                <View style={{ alignItems: "center" }}>
+                  <ThemedLucideIcon
+                    style={{ opacity: 0.5 }}
+                    name="camera"
+                    size={50}
+                  />
+                  <ThemedText>Aggiungi foto</ThemedText>
+                  <ThemedText style={styles.subtitle}>
+                    Tocca per scattare o caricare
+                  </ThemedText>
+                </View>
               )}
             </ThemedBox>
           </TouchableOpacity>
-          <ThemedText style={styles.alert}>{imagePicked}</ThemedText>
+          {!!imagePicked && (
+            <ThemedText style={styles.alert}>{imagePicked}</ThemedText>
+          )}
 
           <View>
             <ThemedText style={styles.label}>Marca Veicolo</ThemedText>
@@ -257,7 +269,7 @@ export default function addModel() {
               value={marca}
               onChangeText={onChangeMarca}
             />
-            {AlertMarca && (
+            {!!AlertMarca && (
               <ThemedText style={styles.alert}>{AlertMarca}</ThemedText>
             )}
           </View>
@@ -270,7 +282,7 @@ export default function addModel() {
               value={modello}
               onChangeText={onChangeModello}
             />
-            {AlertModello && (
+            {!!AlertModello && (
               <ThemedText style={styles.alert}>{AlertModello}</ThemedText>
             )}
           </View>
@@ -283,7 +295,7 @@ export default function addModel() {
               value={produttore}
               onChangeText={onChangeProduttore}
             />
-            {AlertProduttore && (
+            {!!AlertProduttore && (
               <ThemedText style={styles.alert}>{AlertProduttore}</ThemedText>
             )}
           </View>
@@ -296,7 +308,7 @@ export default function addModel() {
               value={versione}
               onChangeText={onChangeVersione}
             />
-            {AlertVersione && (
+            {!!AlertVersione && (
               <ThemedText style={styles.alert}>{AlertVersione}</ThemedText>
             )}
           </View>
@@ -310,7 +322,7 @@ export default function addModel() {
               onChangeText={onChangePrezzo}
               keyboardType="numeric"
             />
-            {AlertPrezzo && (
+            {!!AlertPrezzo && (
               <ThemedText style={styles.alert}>{AlertPrezzo}</ThemedText>
             )}
           </View>
@@ -328,7 +340,7 @@ export default function addModel() {
                 { label: "Altro", value: "altro" },
               ]}
             />
-            {Alertscala && (
+            {!!Alertscala && (
               <ThemedText style={styles.alert}>{Alertscala}</ThemedText>
             )}
           </View>
@@ -345,7 +357,7 @@ export default function addModel() {
               }}
             >
               <ThemedText
-                style={[{ color: "white", fontWeight: "bold", fontSize: 15 }]}
+                style={{ color: "white", fontWeight: "bold", fontSize: 15 }}
               >
                 Aggiungi Modellino
               </ThemedText>
@@ -353,7 +365,6 @@ export default function addModel() {
           </TouchableOpacity>
 
           {/* Bottom Sheet per scelta immagini o fotografia */}
-
           <Host style={{ flex: 1 }}>
             <BottomSheet
               isPresented={isPresented}
@@ -372,10 +383,7 @@ export default function addModel() {
 
                 <Button
                   variant="text"
-                  onPress={() => {
-                    pickImageAsync();
-                    setIsPresented(false);
-                  }}
+                  onPress={() => closeSheetThen(pickImageAsync)}
                 >
                   <Icon
                     name={Icon.select({
@@ -395,10 +403,7 @@ export default function addModel() {
 
                 <Button
                   variant="text"
-                  onPress={() => {
-                    takePhoto();
-                    setIsPresented(false);
-                  }}
+                  onPress={() => closeSheetThen(takePhoto)}
                 >
                   <Icon
                     name={Icon.select({
@@ -430,12 +435,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
-  title: {
-    textAlign: "left",
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-
   subtitle: {
     textAlign: "left",
     fontSize: 13,
@@ -446,22 +445,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     opacity: 0.7,
-  },
-
-  value: {
-    fontSize: 25,
-    fontWeight: "bold",
-  },
-
-  chart: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  legend: {
-    flex: 1,
-    gap: 6,
   },
 
   alert: {

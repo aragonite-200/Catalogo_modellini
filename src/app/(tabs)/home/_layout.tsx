@@ -1,7 +1,9 @@
 import { Stack } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, useColorScheme } from "react-native";
 
 export default function HomeLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark'
   return (
     <Stack
       screenOptions={{
@@ -11,7 +13,15 @@ export default function HomeLayout() {
           Platform.OS === "ios" && Number(Platform.Version) < 26
             ? "regular"
             : undefined,
+
+        headerTintColor: isDark ? '#fff' : '#000',
+          ...(Platform.OS === 'android' && {
+            headerStyle: {
+              backgroundColor: isDark ? '#000' : '#fff',
+            },
+          }),
       }}
+      
     >
       <Stack.Screen name="index" options={{ title: "Home" }} />
     </Stack>
