@@ -1,4 +1,3 @@
-import { BottomSheet, Button, Column, Host, Icon, Text } from "@expo/ui";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -7,7 +6,9 @@ import { useState } from "react";
 import {
   Alert,
   Image,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -225,11 +226,14 @@ export default function addModel() {
         showsVerticalScrollIndicator={false}
       >
         <ThemedView style={styles.container}>
+          <View style={{ gap: 0 }}>
+            <ThemedText style={styles.subtitle}>Completa i dettagli della tua nuova miniatura</ThemedText>
+          </View>
           <TouchableOpacity onPress={() => setIsPresented(true)}>
             <ThemedBox
               style={{
                 width: "100%",
-                height: 200,
+                height: 220,
                 borderStyle: "dashed",
                 borderWidth: 1,
                 borderColor: theme.border,
@@ -353,7 +357,7 @@ export default function addModel() {
                 justifyContent: "center",
                 alignItems: "center",
                 backgroundColor: theme.primary,
-                borderRadius: 8,
+                borderRadius: 16,
               }}
             >
               <ThemedText
@@ -365,59 +369,62 @@ export default function addModel() {
           </TouchableOpacity>
 
           {/* Bottom Sheet per scelta immagini o fotografia */}
-          <Host style={{ flex: 1 }}>
-            <BottomSheet
-              isPresented={isPresented}
-              onDismiss={() => setIsPresented(false)}
-            >
-              <Column spacing={12}>
-                <Text
-                  textStyle={{
-                    fontSize: 20,
-                    fontWeight: "bold",
-                    color: theme.text,
-                  }}
-                >
-                  Scegli l'azione che vuoi effettuare.
-                </Text>
-
-                <Button
-                  variant="text"
+          <Modal
+            visible={isPresented}
+            transparent
+            animationType="slide"
+            statusBarTranslucent
+            onRequestClose={() => setIsPresented(false)}
+          >
+            <View style={styles.sheetOverlay}>
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                onPress={() => setIsPresented(false)}
+              />
+              <View style={[styles.sheet, { backgroundColor: theme.backgroundElement }]}>
+                <View style={styles.sheetHandle} />
+                <ThemedText style={styles.sheetTitle}>Aggiungi una foto</ThemedText>
+                <ThemedText style={styles.sheetSubtitle}>
+                  Scegli una foto dalla galleria o scatta una nuova immagine.
+                </ThemedText>
+                <TouchableOpacity
+                  style={[styles.sheetAction, { backgroundColor: theme.backgroundSelected }]}
+                  activeOpacity={0.75}
                   onPress={() => closeSheetThen(pickImageAsync)}
                 >
-                  <Icon
-                    name={Icon.select({
-                      ios: "photo",
-                      android: require("@expo/material-symbols/image.xml"),
-                    })}
-                    size={30}
-                    color={theme.text}
-                  />
-                  <Text
-                    textStyle={{ color: theme.text }}
-                    style={{ paddingBottom: 12 }}
-                  >
-                    Carica immagine
-                  </Text>
-                </Button>
-
-                <Button
-                  variant="text"
+                  <View style={[styles.sheetIcon, { backgroundColor: theme.primary + "18" }]}>
+                    <ThemedLucideIcon name="images" size={21} style={{ color: theme.primary }} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <ThemedText style={styles.sheetActionTitle}>Scegli dalla galleria</ThemedText>
+                    <ThemedText style={styles.sheetActionHint}>Usa una foto già presente sul dispositivo</ThemedText>
+                  </View>
+                  <ThemedLucideIcon name="chevron-right" size={20} style={{ color: theme.textSecondary }} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.sheetAction, { backgroundColor: theme.backgroundSelected }]}
+                  activeOpacity={0.75}
                   onPress={() => closeSheetThen(takePhoto)}
                 >
-                  <Icon
-                    name={Icon.select({
-                      ios: "camera",
-                      android: require("@expo/material-symbols/camera.xml"),
-                    })}
-                    size={30}
-                    color={theme.text}
-                  />
-                  <Text textStyle={{ color: theme.text }}>Scatta foto</Text>
-                </Button>
-              </Column>
-            </BottomSheet>
-          </Host>
+                  <View style={[styles.sheetIcon, { backgroundColor: theme.primary + "18" }]}>
+                    <ThemedLucideIcon name="camera" size={21} style={{ color: theme.primary }} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <ThemedText style={styles.sheetActionTitle}>Scatta una foto</ThemedText>
+                    <ThemedText style={styles.sheetActionHint}>Apri la fotocamera</ThemedText>
+                  </View>
+                  <ThemedLucideIcon name="chevron-right" size={20} style={{ color: theme.textSecondary }} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.sheetCancel}
+                  onPress={() => setIsPresented(false)}
+                  activeOpacity={0.7}
+                >
+                  <ThemedText style={styles.sheetCancelText}>Annulla</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
         </ThemedView>
       </ScrollView>
     </ThemedSafeAreaView>
@@ -429,7 +436,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.three,
-    gap: Spacing.three,
+    gap: 18,
     maxWidth: MaxContentWidth,
     alignSelf: "center",
     width: "100%",
@@ -437,14 +444,89 @@ const styles = StyleSheet.create({
 
   subtitle: {
     textAlign: "left",
-    fontSize: 13,
-    opacity: 0.7,
+    fontSize: 14,
+    opacity: 0.75,
     marginTop: 0,
   },
 
   label: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 7,
+    opacity: 0.82,
+  },
+
+  title: {
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+  },
+
+  sheetOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(10, 16, 24, 0.48)",
+  },
+  sheet: {
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 34 : 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    gap: 12,
+  },
+  sheetHandle: {
+    width: 38,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#AAB3BE",
+    alignSelf: "center",
+    marginBottom: 5,
+  },
+  sheetTitle: {
+    fontSize: 21,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+  },
+  sheetSubtitle: {
     fontSize: 14,
-    opacity: 0.7,
+    opacity: 0.75,
+    marginBottom: 5,
+  },
+  sheetAction: {
+    minHeight: 72,
+    borderRadius: 17,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 13,
+    gap: 12,
+  },
+  sheetIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetActionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  sheetActionHint: {
+    fontSize: 12,
+    opacity: 0.72,
+  },
+  sheetCancel: {
+    minHeight: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 1,
+  },
+  sheetCancelText: {
+    fontSize: 15,
+    fontWeight: "700",
+    opacity: 0.78,
   },
 
   alert: {

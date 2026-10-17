@@ -1,56 +1,69 @@
-# Welcome to your Expo app 👋
+# Catalogo Modellini
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App mobile per catalogare una collezione di modellini. Permette di aggiungere una scheda con foto e dettagli, consultare e cercare i modelli salvati e vedere un riepilogo della collezione.
 
-## Get started
+## Funzionalità
 
-1. Install dependencies
+- Aggiunta di un modellino con marca, modello, produttore, versione, scala, prezzo e foto.
+- Scelta di un'immagine dalla galleria o acquisizione con la fotocamera.
+- Elenco ricercabile per marca, modello, produttore e scala.
+- Scheda di dettaglio e rimozione di un modellino.
+- Riepilogo con numero di modelli, valore stimato e distribuzioni per scala e marca.
+- Widget iOS per statistiche, ultimi arrivi e aggiunta rapida.
 
-   ```bash
-   npm install
-   ```
+## Requisiti
 
-2. Start the app
+- Node.js compatibile con Expo SDK 57.
+- npm.
+- Per eseguire l'app nativamente: Xcode e iOS Simulator su macOS, oppure Android Studio e un emulatore Android.
 
-   ```bash
-   npx expo start
-   ```
+Il progetto usa Expo SDK 57 e React Native 0.86. La documentazione Expo di riferimento indicata nelle istruzioni del repository è [Expo SDK 56](https://docs.expo.dev/versions/v56.0.0/); per comandi e librerie specifici del progetto, verifica la compatibilità con SDK 57.
 
-In the output, you'll find options to open the app in a
+## Avvio
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Installa le dipendenze dal lockfile:
 
 ```bash
-npm run reset-project
+npm ci
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Avvia il server di sviluppo:
 
-### Other setup steps
+```bash
+npm start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Poi segui le istruzioni mostrate nel terminale per aprire l'app su un dispositivo o un emulatore. Sono disponibili anche questi comandi:
 
-## Learn more
+```bash
+npm run android  # avvia la versione Android nativa
+npm run ios      # avvia la versione iOS nativa (macOS e Xcode)
+npm run web      # avvia la versione web
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+L'app include moduli nativi e widget iOS. Per le funzionalità che li usano, avviala con un development build configurato per la piattaforma; la disponibilità in Expo Go può essere limitata.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Struttura del progetto
 
-## Join the community
+```text
+src/
+  app/          schermate e navigazione Expo Router
+  components/   componenti riutilizzabili e grafici
+  constants/    tema e valori condivisi
+  hooks/        hook per tema e schema colori
+  utils/        inizializzazione del database SQLite
+widgets/        widget iOS
+```
 
-Join our community of developers creating universal apps.
+I dati dei modellini sono memorizzati nel database SQLite locale. Le immagini vengono copiate nella cartella `images` dello spazio documenti dell'app; il database conserva il nome del file. I dati sono locali al dispositivo e il progetto non configura sincronizzazione o backup cloud.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Qualità del codice
+
+```bash
+npm run lint
+```
+
+## Note
+
+- L'autorizzazione alla fotocamera viene richiesta quando si sceglie di scattare una foto.
+- La cartella `app/` citata nella documentazione generica Expo non è usata direttamente qui: le rotte dell'app si trovano in `src/app/`.

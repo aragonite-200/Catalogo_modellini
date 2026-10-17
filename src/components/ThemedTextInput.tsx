@@ -16,6 +16,7 @@ export function ThemedTextInput({
         {
           backgroundColor: theme.backgroundElement,
           color: theme.text,
+          borderColor: theme.border,
         },
         style,
       ]}
@@ -27,8 +28,10 @@ export function ThemedTextInput({
 
 const styles = StyleSheet.create({
   input: {
-    padding: Spacing.three,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
     fontSize: 16,
   },
 });

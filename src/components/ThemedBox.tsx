@@ -12,7 +12,7 @@ export function ThemedBox({
     <View
       style={[
         styles.box,
-        { backgroundColor: theme.backgroundElement },
+        { backgroundColor: theme.backgroundElement, borderColor: theme.border },
         style,
       ]}
       {...props}
@@ -23,7 +23,9 @@ export function ThemedBox({
 const styles = StyleSheet.create({
   box: {
     padding: Spacing.three,
-    borderRadius: 8,
-    gap: 4,
+    borderRadius: 20,
+    gap: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E9EF',
   },
 });

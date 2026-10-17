@@ -15,6 +15,7 @@ import { ThemedView } from "@/components/themed-view";
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView";
 import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import * as FileSystem from "expo-file-system/legacy";
 
 type Model = {
@@ -27,6 +28,7 @@ type Model = {
 };
 
 export default function AllModels() {
+  const theme = useTheme();
   const [text, onChangeText] = useState("");
 
   const [refreshing, setRefreshing] = useState(false);
@@ -63,11 +65,14 @@ export default function AllModels() {
         }
       >
         <ThemedView style={styles.container}>
+          <View style={{ gap: 0 }}>
+            <ThemedText style={styles.subtitle}>I tuoi modelli preferiti</ThemedText>
+          </View>
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              gap: 10,
+              gap: 8,
               justifyContent: "space-between",
             }}
           >
@@ -78,8 +83,8 @@ export default function AllModels() {
               style={{ flex: 1 }}
             />
 
-            <TouchableOpacity>
-              <Lucide name="funnel" size={35} />
+            <TouchableOpacity style={[styles.filterButton, { backgroundColor: theme.backgroundSelected }]} activeOpacity={0.75}>
+              <Lucide name="funnel" size={20} color={theme.text} />
             </TouchableOpacity>
           </View>
 
@@ -107,15 +112,26 @@ const styles = StyleSheet.create({
 
   title: {
     textAlign: "left",
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "800",
+    letterSpacing: -0.7,
   },
 
   subtitle: {
     textAlign: "left",
-    fontSize: 13,
-    opacity: 0.7,
+    fontSize: 14,
+    opacity: 0.75,
     marginTop: 0,
+  },
+
+  filterButton: {
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 15,
+    backgroundColor: "#E9EDF2",
   },
 
   label: {

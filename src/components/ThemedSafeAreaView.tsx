@@ -11,8 +11,7 @@ export function ThemedSafeAreaView({
 }: ThemedSafeAreaViewProps) {
   const theme = useTheme();
 
-  const backgroundColor =
-    theme.background ?? "#FFFFFF"; 
+  const backgroundColor = theme.background ?? "#FFFFFF";
 
   return (
     <SafeAreaView
@@ -20,10 +19,7 @@ export function ThemedSafeAreaView({
       style={[
         styles.base,
         {
-          backgroundColor:
-            backgroundColor === "#000000"
-              ? "#000000"
-              : "#FFFFFF",
+          backgroundColor,
         },
         style,
       ]}

@@ -101,9 +101,9 @@ export default function HomeScreen() {
         }
       >
         <ThemedView style={styles.container}>
-          <ThemedView style={{ gap: 2 }}>
+          <ThemedView style={{ gap: 0 }}>
             <ThemedText style={styles.subtitle}>
-              Ecco il riepilogo della tua collezione
+              Tutti i tuoi modellini, in un unico posto
             </ThemedText>
           </ThemedView>
 
@@ -115,14 +115,14 @@ export default function HomeScreen() {
               justifyContent: "space-between",
             }}
           >
-            <ThemedBox style={{ flex: 1, minWidth: 150 }}>
-              <ThemedText style={styles.label}>Totale Modellini</ThemedText>
+            <ThemedBox style={styles.statCard}>
+              <ThemedText style={styles.label}>MODELLINI</ThemedText>
               <ThemedText style={styles.value}>{totaleModellini}</ThemedText>
             </ThemedBox>
 
-            <ThemedBox style={{ flex: 1, minWidth: 150 }}>
-              <ThemedText style={styles.label}>Valore Stimato</ThemedText>
-              <ThemedText style={styles.value}>{valore}</ThemedText>
+            <ThemedBox style={styles.statCard}>
+              <ThemedText style={styles.label}>VALORE STIMATO</ThemedText>
+              <ThemedText style={styles.value}>{valore.toLocaleString("it-IT", { style: "currency", currency: "EUR" })}</ThemedText>
             </ThemedBox>
           </ThemedView>
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.three,
-    gap: Spacing.three,
+    gap: 20,
     maxWidth: MaxContentWidth,
     alignSelf: "center",
     width: "100%",
@@ -195,24 +195,40 @@ const styles = StyleSheet.create({
 
   title: {
     textAlign: "left",
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "800",
+    letterSpacing: -0.7,
   },
 
   subtitle: {
     textAlign: "left",
-    fontSize: 13,
-    opacity: 0.7,
+    fontSize: 15,
+    opacity: 0.78,
   },
 
   label: {
-    fontSize: 14,
-    opacity: 0.7,
+    fontSize: 11,
+    letterSpacing: 0.9,
+    fontWeight: "700",
+    opacity: 0.72,
   },
 
   value: {
-    fontSize: 25,
-    fontWeight: "bold",
+    fontSize: 23,
+    fontWeight: "800",
+    letterSpacing: -0.4,
+    flexShrink: 1,
+    includeFontPadding: false,
+  },
+
+  statCard: {
+    flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    gap: 8,
   },
 
   chart: {

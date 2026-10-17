@@ -119,14 +119,14 @@ export function ModelList({ query, refreshTrigger }: ModelListProps) {
             item.scala.toLowerCase().includes(query.toLowerCase())
           )
             return (
-              <ThemedBox
+          <ThemedBox
                 key={item.id}
                 style={{
                   flex: 1,
                   minWidth: 150,
                   padding: 0,
                   overflow: "hidden",
-                  minHeight: 150,
+                  minHeight: 175,
                 }}
               >
                 <TouchableOpacity
@@ -139,12 +139,12 @@ export function ModelList({ query, refreshTrigger }: ModelListProps) {
                     source={{ uri: getImageUri(item.foto_path) }}
                     style={{
                       width: "100%",
-                      height: 100,
-                      backgroundColor: "#ccc",
+                      height: 125,
+                      backgroundColor: theme.backgroundSelected,
                     }}
                   />
                   <View
-                    style={{ padding: Spacing.two, paddingTop: Spacing.half }}
+                    style={{ padding: Spacing.three, paddingTop: Spacing.two, gap: 3 }}
                   >
                     <ThemedText style={{ fontWeight: "bold" }} type="default">
                       {item.marca} {item.modello}
@@ -152,14 +152,13 @@ export function ModelList({ query, refreshTrigger }: ModelListProps) {
                     <ThemedText style={{ fontSize: 14, opacity: 0.7 }}>
                       {item.produttore}
                     </ThemedText>
-                    <View style={{ alignSelf: "flex-end" }}>
+                    <View style={{ alignSelf: "flex-start", marginTop: 5 }}>
                       <ThemedText
                         style={{
-                          borderRadius: 8,
+                          borderRadius: 20,
                           paddingVertical: 4,
-                          paddingHorizontal: 10,
-                          borderWidth: 1,
-                          borderColor: theme.primary,
+                          paddingHorizontal: 9,
+                          borderWidth: 0,
                           backgroundColor: theme.primary + "20",
                           fontSize: 14,
                           opacity: 0.7,
